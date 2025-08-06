@@ -12,7 +12,12 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        String filePath = args[0];
+        String fileContents = readFileContents(args[0]);
+        testMethod(fileContents);
+    }
+
+    private static String readFileContents(String filePath)
+    {
         StringBuilder sb = new StringBuilder();
         String line;
 
@@ -28,8 +33,7 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        String fileContents = sb.toString();
-        testMethod(fileContents);
+        return sb.toString();
     }
 
     public static void testMethod(String file)
