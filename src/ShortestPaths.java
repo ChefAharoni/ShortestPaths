@@ -4,19 +4,13 @@ import java.io.IOException;
 
 public class ShortestPaths
 {
-    public static void main(String[] args)
+    public ShortestPaths(String filePath)
     {
-        if (args.length != 1)
-        {
-            System.out.println("Usage: java ShortestPaths <filename>");
-            System.exit(1);
-        }
-
-        String fileContents = readFileContents(args[0]);
+        String fileContents = readFileContents(filePath);
         testMethod(fileContents);
     }
 
-    private static String readFileContents(String filePath)
+    private String readFileContents(String filePath)
     {
         StringBuilder sb = new StringBuilder();
         String line;
@@ -42,7 +36,7 @@ public class ShortestPaths
     }
 
 
-    private static void checkInput(String line, int lineNum, int vertices)
+    private void checkInput(String line, int lineNum, int vertices)
     {
         String[] args = line.split(" ");
         int delta = (int) 'A' + vertices - 1;
@@ -116,7 +110,7 @@ public class ShortestPaths
         }
     }
 
-    private static int checkVertInput(String firstLine)
+    private int checkVertInput(String firstLine)
     {
         int vertNum = 0;
 
@@ -141,9 +135,20 @@ public class ShortestPaths
         return vertNum;
     }
 
-
-    public static void testMethod(String file)
+    // Debugger
+    private void testMethod(String file)
     {
         System.out.println("File contents:\n" + file);
+    }
+
+    public static void main(String[] args)
+    {
+        if (args.length != 1)
+        {
+            System.out.println("Usage: java ShortestPaths <filename>");
+            System.exit(1);
+        }
+
+        ShortestPaths shortestPaths = new ShortestPaths(args[0]);
     }
 }
