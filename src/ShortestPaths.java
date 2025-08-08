@@ -102,7 +102,7 @@ public class ShortestPaths
 
         // Check that the vertices are in range (A is 65 in ASCII)
         // Starting vertex
-        int asciiVal = (int) charArr[0];
+        int asciiVal = charArr[0];
         if (asciiVal > delta || asciiVal < 65)
         {
             System.err.println("Error: Starting vertex '"+ charArr[0] +
@@ -114,7 +114,7 @@ public class ShortestPaths
         int fromInx = asciiVal - 65;
 
         // Ending vertex
-        asciiVal = (int) charArr[1];
+        asciiVal = charArr[1];
         if (asciiVal > delta || asciiVal < 65)
         {
             System.err.println("Error: Ending vertex '"+ charArr[1] +
@@ -394,6 +394,6 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        ShortestPaths shortestPaths = new ShortestPaths(args[0]);
+        new ShortestPaths(args[0]);
     }
 }
