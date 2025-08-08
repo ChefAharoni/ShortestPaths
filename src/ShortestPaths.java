@@ -97,10 +97,6 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        // Strip all spaces from the line
-        String cleanLine = line.replaceAll("\\s+", "");
-        char[] charArr = cleanLine.toCharArray();
-
         // Check that the vertices are in range (A is 65 in ASCII)
         // Starting vertex
         char startVertex = args[0].charAt(0);
