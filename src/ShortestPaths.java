@@ -50,7 +50,6 @@ public class ShortestPaths
 
     private void checkInput(String line, int lineNum, int vert)
     {
-//        String[] args = line.split(" ");
         String[] args = line.trim().split("\\s+");
 
         int delta = (int) 'A' + vert - 1;
@@ -107,7 +106,7 @@ public class ShortestPaths
         char startVertex = args[0].charAt(0);
         if (startVertex > delta || startVertex < 'A')
         {
-            System.err.println("Error: Starting vertex '"+ charArr[0] +
+            System.err.println("Error: Starting vertex '" + startVertex +
                     "' on line " + lineNum +  " is not among valid values " +
                     "A-"+ (char) delta + ".");
             System.exit(1);
@@ -117,7 +116,7 @@ public class ShortestPaths
         char endVertex = args[1].charAt(0);
         if (endVertex > delta || endVertex < 'A')
         {
-            System.err.println("Error: Ending vertex '"+ charArr[1] +
+            System.err.println("Error: Ending vertex '" + endVertex +
                     "' on line " + lineNum +  " is not among valid values " +
                     "A-"+ (char) delta + ".");
             System.exit(1);
