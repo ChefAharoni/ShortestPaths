@@ -5,19 +5,26 @@ import java.util.*;
 
 public class ShortestPaths
 {
-    private long[][] dist;
+    private long[][] dist; // distance matrix
+    private long[][] pathLength; // path lengths matrix
+    private char[][] interVert; // intermediate vertices matrix
+
     private Character[] vertices;
     private int vertNum;
     private int tableWidth;
+    private final long INF = (long) Integer.MAX_VALUE + 1;
 
 
     public ShortestPaths(String filePath)
     {
         String fileContents = readFileContents(filePath);
         buildDistanceMatrix();
+        buildPathLengthMatrix();
+        buildInterVertMatrix();
+        floydSolve();
         printDistMatrix();
-
-        testMethod(fileContents);
+        printPathLenMatrix();
+        printInterVertMatrix();
     }
 
     private String readFileContents(String filePath)
@@ -43,7 +50,6 @@ public class ShortestPaths
 
         return sb.toString();
     }
-
 
     private void checkInput(String line, int lineNum, int vert)
     {
@@ -153,11 +159,71 @@ public class ShortestPaths
 
     private void buildDistanceMatrix()
     {
-        final long INF = Long.MAX_VALUE;
-//        dist = new long[vertNum][vertNum];
+        for (int i = 0; i < dist.length; i++)
+        {
+            for (int j = 0; j < dist[i].length; j++)
+            {
+//                System.out.println("i: " + i + " j: " + j);
+//                System.out.println("Distance: " + dist[i][j]);
+                if (i != j && dist[i][j] == 0)
+                    dist[i][j] = INF;
+            }
+        }
 
-        // AD8 --> 'A' - 65 = 0; 'D' - 65 = 3
+        // A D 8 --> 'A' - 65 = 0; 'D' - 65 = 3
         // matrix[0][3] = 8
+    }
+
+    private void buildPathLengthMatrix()
+    {
+        pathLength = new long[dist.length][dist.length];
+
+        for (int i = 0; i < dist.length; i++)
+            // copy dist matrix to pathLength matrix
+            System.arraycopy(dist[i], 0, pathLength[i], 0, dist[i].length);
+
+    }
+
+    private void buildInterVertMatrix()
+    {
+        interVert = new char[dist.length][dist.length];
+
+        for (int i = 0; i < dist.length; i++)
+        {
+            for (int j = 0; j < dist[i].length; j++)
+            {
+                interVert[i][j] = '-';
+            }
+        }
+
+    }
+
+    private void floydSolve()
+    {
+        int n = vertNum;
+
+        for (int k = 0; k < n; k++)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    long prevVal = pathLength[i][j];
+                    long newVal = Math.min(pathLength[i][j], pathLength[i][k] + pathLength[k][j]);
+                    if (newVal < prevVal)
+                    {
+                        // save to table
+                        pathLength[i][j] = newVal;
+                        interVert[i][j] = inxToChar(k);
+                    }
+                }
+            }
+        }
+    }
+
+    private char inxToChar(int inx)
+    {
+        return (char) (65 + inx);
     }
 
     private void printDistMatrix()
@@ -168,7 +234,7 @@ public class ShortestPaths
         tableWidth = 4;
 
         StringBuilder sb = new StringBuilder();
-        System.out.println(tableWidth);
+        System.out.println("Distance matrix:");
 
         sb.append(" ".repeat(tableWidth + 1));
 
@@ -183,20 +249,73 @@ public class ShortestPaths
             sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
             for (int j = 0; j < dist[i].length; j++)
             {
-                sb.append(dist[i][j]).append(" ".repeat(tableWidth));
+                if (dist[i][j] == INF)
+                    sb.append("∞").append(" ".repeat(tableWidth));
+                else
+                    sb.append(dist[i][j]).append(" ".repeat(tableWidth));
             }
         }
 
-        System.out.println(sb.toString());
+        sb.append(System.lineSeparator());
+        System.out.println(sb);
     }
 
-
-    // Debugger
-    private void testMethod(String file)
+    private void printPathLenMatrix()
     {
-//        System.out.println(vertices);
-//        System.out.println("File contents:\n" + file);
+        StringBuilder sb = new StringBuilder();
+        System.out.println("Path length matrix:");
+        sb.append(" ".repeat(tableWidth + 1));
+
+        for (int i = 0; i < pathLength.length; i++)
+        {
+            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
+        }
+
+        for (int i = 0; i < pathLength.length; i++)
+        {
+            sb.append(System.lineSeparator());
+            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
+            for (int j = 0; j < pathLength[i].length; j++)
+            {
+                if (pathLength[i][j] == INF)
+                    sb.append("∞").append(" ".repeat(tableWidth));
+                else
+                    sb.append(pathLength[i][j]).append(" ".repeat(tableWidth));
+            }
+        }
+
+        sb.append(System.lineSeparator());
+        System.out.println(sb);
     }
+
+    private void printInterVertMatrix()
+    {
+        StringBuilder sb = new StringBuilder();
+        System.out.println("Interval matrix:");
+        sb.append(" ".repeat(tableWidth + 1));
+
+        for (int i = 0; i < interVert.length; i++)
+        {
+            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
+        }
+
+        for (int i = 0; i < interVert.length; i++)
+        {
+            sb.append(System.lineSeparator());
+            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
+            for (int j = 0; j < interVert[i].length; j++)
+            {
+                if (interVert[i][j] == INF)
+                    sb.append("∞").append(" ".repeat(tableWidth));
+                else
+                    sb.append(interVert[i][j]).append(" ".repeat(tableWidth));
+            }
+        }
+
+        sb.append(System.lineSeparator());
+        System.out.println(sb);
+    }
+
 
     public static void main(String[] args)
     {
