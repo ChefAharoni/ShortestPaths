@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
 
 public class ShortestPaths
 {
@@ -9,10 +8,9 @@ public class ShortestPaths
     private long[][] pathLength; // path lengths matrix
     private char[][] interVert; // intermediate vertices matrix
 
-    private Character[] vertices;
     private int vertNum;
-    private int tableWidth;
-    private final long INF = (long) Integer.MAX_VALUE + 1;
+    private final long INF = Integer.MAX_VALUE;
+    private final String NL = System.lineSeparator();
 
 
     public ShortestPaths(String filePath)
@@ -32,7 +30,6 @@ public class ShortestPaths
 
     private void readFileContents(String filePath)
     {
-//        StringBuilder sb = new StringBuilder();
         String line;
         int lineNum = 1;
 
@@ -40,7 +37,6 @@ public class ShortestPaths
         {
             while((line = br.readLine()) != null)
             {
-//                sb.append(line).append(System.lineSeparator());
                 if (lineNum == 1) vertNum = checkVertInput(line);
                 else checkInput(line, lineNum, vertNum);
                 lineNum++;
@@ -50,8 +46,6 @@ public class ShortestPaths
             System.err.println("Error: Cannot open file '" + filePath + "'.");
             System.exit(1);
         }
-
-//        return sb.toString();
     }
 
     private void checkInput(String line, int lineNum, int vert)
@@ -251,7 +245,7 @@ public class ShortestPaths
         System.out.println(sb);
     }
 
-    private String getPath(int from, int to, int pathsNum)
+    private String getPath(int from, int to)
     {
         if (from == to)
             return "" + inxToChar(from);
@@ -262,15 +256,24 @@ public class ShortestPaths
         else
         {
             int inx = charToInx(interVert[from][to]);
-            return inxToChar(from) + getPath(inx, to, pathsNum + 1);
-        }
+            String sFrom = getPath(from, inx);
+            String sTo = getPath(inx, to);
 
+            return sFrom + sTo;
+        }
     }
 
     private String printPath(int from, int to)
     {
-        String path = getPath(from, to, 0);
-        char[] chars = path.toCharArray();
+        String path = getPath(from, to);
+        char[] chars = path.chars()
+                .distinct()
+                .mapToObj(c -> (char) c)
+                .collect(StringBuilder::new,
+                        StringBuilder::append,
+                        StringBuilder::append)
+                .toString()
+                .toCharArray();
 
         StringBuilder sb = new StringBuilder();
         for (char aChar : chars)
@@ -285,94 +288,101 @@ public class ShortestPaths
         return sb.toString();
     }
 
+    private String render(long v)
+    {
+        return v == INF ? "∞" : Long.toString(v);
+    }
+
+    private int cellWidth(long[][] m)
+    {
+        int w = 1;
+        for (long[] r : m)
+            for (long v : r)
+                w = Math.max(w, render(v).length());
+        return w;
+    }
+    private int cellWidth(char[][] m) { return 1; }
+
+    private void appendHeader(StringBuilder sb, int n, int cw)
+    {
+        final String cellFmt = "%" + cw + "s";
+        // Add a placeholder for the row header column
+        sb.append(' ');
+        for (int j = 0; j < n; j++) {
+            // Prepend a separator and then the formatted column header
+            sb.append(' ');
+            sb.append(String.format(cellFmt, (char)('A' + j)));
+        }
+    }
+
     private void printDistMatrix()
     {
-        // To get the length of printing, we need to get the width of the
-        // longest number that is printed
-        // TODO: get longest width and repeat with that
-        tableWidth = 4;
+        final int n  = dist.length;
+        final int cw = cellWidth(dist);
+        final String cellFmt = "%" + cw + "s";
 
-        StringBuilder sb = new StringBuilder();
+
         System.out.println("Distance matrix:");
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(" ".repeat(tableWidth + 1));
+        appendHeader(sb, n, cw);
 
-        for (int i = 0; i < dist.length; i++)
-        {
-            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
-        }
-
-        for (int i = 0; i < dist.length; i++)
-        {
-            sb.append(System.lineSeparator());
-            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
-            for (int j = 0; j < dist[i].length; j++)
-            {
-                if (dist[i][j] == INF)
-                    sb.append("∞").append(" ".repeat(tableWidth));
-                else
-                    sb.append(dist[i][j]).append(" ".repeat(tableWidth));
+        for (int i = 0; i < n; i++) {
+            sb.append(NL);
+            sb.append((char)('A' + i)); // Row header
+            for (int j = 0; j < n; j++) {
+                sb.append(' '); // Separator
+                sb.append(String.format(cellFmt, render(dist[i][j])));
             }
         }
-
-        sb.append(System.lineSeparator());
-        System.out.println(sb);
+        sb.append(NL).append(NL);
+        System.out.print(sb);
     }
 
     private void printPathLenMatrix()
     {
+        final int n  = pathLength.length;
+        final int cw = cellWidth(pathLength);
+        final String cellFmt = "%" + cw + "s";
+
+        System.out.println("Path lengths:");
         StringBuilder sb = new StringBuilder();
-        System.out.println("Path length:");
-        sb.append(" ".repeat(tableWidth + 1));
 
-        for (int i = 0; i < pathLength.length; i++)
-        {
-            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
-        }
+        appendHeader(sb, n, cw);
 
-        for (int i = 0; i < pathLength.length; i++)
-        {
-            sb.append(System.lineSeparator());
-            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
-            for (int j = 0; j < pathLength[i].length; j++)
-            {
-                if (pathLength[i][j] == INF)
-                    sb.append("∞").append(" ".repeat(tableWidth));
-                else
-                    sb.append(pathLength[i][j]).append(" ".repeat(tableWidth));
+        for (int i = 0; i < n; i++) {
+            sb.append(NL);
+            sb.append((char)('A' + i)); // Row header
+            for (int j = 0; j < n; j++) {
+                sb.append(' '); // Separator
+                sb.append(String.format(cellFmt, pathLength[i][j]));
             }
         }
-
-        sb.append(System.lineSeparator());
-        System.out.println(sb);
+        sb.append(NL).append(NL);
+        System.out.print(sb);
     }
 
     private void printInterVertMatrix()
     {
-        StringBuilder sb = new StringBuilder();
+        final int n  = interVert.length;
+        final int cw = cellWidth(interVert);
+        final String cellFmt = "%" + cw + "s";
+
         System.out.println("Intermediate vertices:");
-        sb.append(" ".repeat(tableWidth + 1));
+        StringBuilder sb = new StringBuilder();
 
-        for (int i = 0; i < interVert.length; i++)
-        {
-            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
-        }
+        appendHeader(sb, n, cw);
 
-        for (int i = 0; i < interVert.length; i++)
-        {
-            sb.append(System.lineSeparator());
-            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
-            for (int j = 0; j < interVert[i].length; j++)
-            {
-                if (interVert[i][j] == INF)
-                    sb.append("∞").append(" ".repeat(tableWidth));
-                else
-                    sb.append(interVert[i][j]).append(" ".repeat(tableWidth));
+        for (int i = 0; i < n; i++) {
+            sb.append(NL);
+            sb.append((char)('A' + i)); // Row header
+            for (int j = 0; j < n; j++) {
+                sb.append(' '); // Separator
+                sb.append(String.format(cellFmt, interVert[i][j]));
             }
         }
-
-        sb.append(System.lineSeparator());
-        System.out.println(sb);
+        sb.append(NL).append(NL);
+        System.out.print(sb);
     }
 
 
