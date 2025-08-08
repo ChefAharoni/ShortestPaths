@@ -1,12 +1,22 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.*;
 
 public class ShortestPaths
 {
+    private long[][] dist;
+    private Character[] vertices;
+    private int vertNum;
+    private int tableWidth;
+
+
     public ShortestPaths(String filePath)
     {
         String fileContents = readFileContents(filePath);
+        buildDistanceMatrix();
+        printDistMatrix();
+
         testMethod(fileContents);
     }
 
@@ -15,15 +25,14 @@ public class ShortestPaths
         StringBuilder sb = new StringBuilder();
         String line;
         int lineNum = 1;
-        int vert = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath)))
         {
             while((line = br.readLine()) != null)
             {
                 sb.append(line).append(System.lineSeparator());
-                if (lineNum == 1) vert = checkVertInput(line);
-                else checkInput(line, lineNum, vert);
+                if (lineNum == 1) vertNum = checkVertInput(line);
+                else checkInput(line, lineNum, vertNum);
                 lineNum++;
             }
         } catch (IOException ioe)
@@ -36,10 +45,10 @@ public class ShortestPaths
     }
 
 
-    private void checkInput(String line, int lineNum, int vertices)
+    private void checkInput(String line, int lineNum, int vert)
     {
         String[] args = line.split(" ");
-        int delta = (int) 'A' + vertices - 1;
+        int delta = (int) 'A' + vert - 1;
 
         if (args.length != 3)
         {
@@ -99,6 +108,8 @@ public class ShortestPaths
             System.exit(1);
         }
 
+        int fromInx = asciiVal - 65;
+
         // Ending vertex
         asciiVal = (int) charArr[1];
         if (asciiVal > delta || asciiVal < 65)
@@ -108,6 +119,9 @@ public class ShortestPaths
                     "A-"+ (char) delta + ".");
             System.exit(1);
         }
+
+        int toInx = asciiVal - 65;
+        dist[fromInx][toInx] = weight;
     }
 
     private int checkVertInput(String firstLine)
@@ -132,13 +146,56 @@ public class ShortestPaths
             System.exit(1);
         }
 
+        dist = new long[vertNum][vertNum];
         return vertNum;
     }
+
+
+    private void buildDistanceMatrix()
+    {
+        final long INF = Long.MAX_VALUE;
+//        dist = new long[vertNum][vertNum];
+
+        // AD8 --> 'A' - 65 = 0; 'D' - 65 = 3
+        // matrix[0][3] = 8
+    }
+
+    private void printDistMatrix()
+    {
+        // To get the length of printing, we need to get the width of the
+        // longest number that is printed
+        // TODO: get longest width and repeat with that
+        tableWidth = 4;
+
+        StringBuilder sb = new StringBuilder();
+        System.out.println(tableWidth);
+
+        sb.append(" ".repeat(tableWidth + 1));
+
+        for (int i = 0; i < dist.length; i++)
+        {
+            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
+        }
+
+        for (int i = 0; i < dist.length; i++)
+        {
+            sb.append(System.lineSeparator());
+            sb.append((char) ('A' + i)).append(" ".repeat(tableWidth));
+            for (int j = 0; j < dist[i].length; j++)
+            {
+                sb.append(dist[i][j]).append(" ".repeat(tableWidth));
+            }
+        }
+
+        System.out.println(sb.toString());
+    }
+
 
     // Debugger
     private void testMethod(String file)
     {
-        System.out.println("File contents:\n" + file);
+//        System.out.println(vertices);
+//        System.out.println("File contents:\n" + file);
     }
 
     public static void main(String[] args)
