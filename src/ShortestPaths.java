@@ -17,19 +17,22 @@ public class ShortestPaths
 
     public ShortestPaths(String filePath)
     {
-        String fileContents = readFileContents(filePath);
+        readFileContents(filePath);
         buildDistanceMatrix();
         buildPathLengthMatrix();
         buildInterVertMatrix();
+
         floydSolve();
         printDistMatrix();
         printPathLenMatrix();
         printInterVertMatrix();
+
+        backtrackSolution();
     }
 
-    private String readFileContents(String filePath)
+    private void readFileContents(String filePath)
     {
-        StringBuilder sb = new StringBuilder();
+//        StringBuilder sb = new StringBuilder();
         String line;
         int lineNum = 1;
 
@@ -37,7 +40,7 @@ public class ShortestPaths
         {
             while((line = br.readLine()) != null)
             {
-                sb.append(line).append(System.lineSeparator());
+//                sb.append(line).append(System.lineSeparator());
                 if (lineNum == 1) vertNum = checkVertInput(line);
                 else checkInput(line, lineNum, vertNum);
                 lineNum++;
@@ -48,7 +51,7 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        return sb.toString();
+//        return sb.toString();
     }
 
     private void checkInput(String line, int lineNum, int vert)
@@ -163,8 +166,6 @@ public class ShortestPaths
         {
             for (int j = 0; j < dist[i].length; j++)
             {
-//                System.out.println("i: " + i + " j: " + j);
-//                System.out.println("Distance: " + dist[i][j]);
                 if (i != j && dist[i][j] == 0)
                     dist[i][j] = INF;
             }
@@ -209,7 +210,8 @@ public class ShortestPaths
                 for (int j = 0; j < n; j++)
                 {
                     long prevVal = pathLength[i][j];
-                    long newVal = Math.min(pathLength[i][j], pathLength[i][k] + pathLength[k][j]);
+                    long newVal = Math.min(pathLength[i][j],
+                            pathLength[i][k] + pathLength[k][j]);
                     if (newVal < prevVal)
                     {
                         // save to table
@@ -224,6 +226,63 @@ public class ShortestPaths
     private char inxToChar(int inx)
     {
         return (char) (65 + inx);
+    }
+
+    private int charToInx(char ch)
+    {
+        return (int) ch - 'A';
+    }
+
+    private void backtrackSolution()
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < pathLength.length; i++)
+        {
+            for  (int j = 0; j < pathLength[i].length; j++)
+            {
+                sb.append(inxToChar(i)).append(" -> ").append(inxToChar(j))
+                    .append(", distance: ").append(pathLength[i][j])
+                    .append(", path: ").append(printPath(i, j))
+                    .append(System.lineSeparator());
+            }
+        }
+
+        System.out.println(sb);
+    }
+
+    private String getPath(int from, int to, int pathsNum)
+    {
+        if (from == to)
+            return "" + inxToChar(from);
+
+        else if (interVert[from][to] == '-')
+            return "" + inxToChar(from) + inxToChar(to);
+
+        else
+        {
+            int inx = charToInx(interVert[from][to]);
+            return inxToChar(from) + getPath(inx, to, pathsNum + 1);
+        }
+
+    }
+
+    private String printPath(int from, int to)
+    {
+        String path = getPath(from, to, 0);
+        char[] chars = path.toCharArray();
+
+        StringBuilder sb = new StringBuilder();
+        for (char aChar : chars)
+        {
+            sb.append(aChar)
+                    .append(" -> ");
+        }
+
+        // Delete the last arrow
+        sb.delete(sb.length() - 4, sb.length());
+
+        return sb.toString();
     }
 
     private void printDistMatrix()
@@ -263,7 +322,7 @@ public class ShortestPaths
     private void printPathLenMatrix()
     {
         StringBuilder sb = new StringBuilder();
-        System.out.println("Path length matrix:");
+        System.out.println("Path length:");
         sb.append(" ".repeat(tableWidth + 1));
 
         for (int i = 0; i < pathLength.length; i++)
@@ -291,7 +350,7 @@ public class ShortestPaths
     private void printInterVertMatrix()
     {
         StringBuilder sb = new StringBuilder();
-        System.out.println("Interval matrix:");
+        System.out.println("Intermediate vertices:");
         sb.append(" ".repeat(tableWidth + 1));
 
         for (int i = 0; i < interVert.length; i++)
