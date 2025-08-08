@@ -9,7 +9,7 @@ public class ShortestPaths
     private char[][] interVert; // intermediate vertices matrix
 
     private int vertNum;
-    private final long INF = Integer.MAX_VALUE;
+    private final long INF = Long.MAX_VALUE / 4;
     private final String NL = System.lineSeparator();
 
 
@@ -61,10 +61,10 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        int weight = 0;
+        long weight = 0;
         try
         {
-            weight = Integer.parseInt(args[2]);
+            weight = Long.parseLong(args[2]);
         } catch (NumberFormatException e)
         {
             System.err.println("Error: Invalid edge weight '" + args[2] +
@@ -72,7 +72,7 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        if (weight < 1)
+        if (weight < 1 || weight > Integer.MAX_VALUE)
         {
             System.err.println("Error: Invalid edge weight '" + weight +
                     "' on line " + lineNum + ".");
@@ -202,12 +202,16 @@ public class ShortestPaths
                     // Check for infinity before adding to prevent overflow
                     if (pathLength[i][k] != INF && pathLength[k][j] != INF)
                     {
-                        long newVal = pathLength[i][k] + pathLength[k][j];
-                        if (newVal < pathLength[i][j])
+                        long a = pathLength[i][k], b = pathLength[k][j];
+                        if (a <= INF - b)
                         {
-                            // Save to tables
-                            pathLength[i][j] = newVal;
-                            interVert[i][j] = inxToChar(k);
+                            long candidate = a + b;
+                            if (candidate < pathLength[i][j])
+                            {
+                                // Save to tables
+                                pathLength[i][j] = candidate;
+                                interVert[i][j] = inxToChar(k);
+                            }
                         }
                     }
                 }
