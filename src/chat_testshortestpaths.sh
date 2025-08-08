@@ -1,6 +1,6 @@
 #!/bin/bash
 # Extended edge-case tests for ShortestPaths
-# - Adds 10 new tests
+# - Adds 10+ new tests
 # - Writes expected/received outputs under ./diffs
 # - Echoes PASS/FAIL summary
 
@@ -126,7 +126,7 @@ run_case_two_args () {
   fi
 }
 
-# ---------- 10 NEW EDGE CASES ----------
+# ---------- EDGE CASES ----------
 
 # NEW01: No arguments (usage)
 run_case_no_args "NEW01" "No arguments -> usage message" "Usage: java ShortestPaths <filename>
@@ -137,12 +137,9 @@ run_case_two_args "NEW02" "Two arguments -> usage message" "a.txt" "b.txt" "Usag
 "
 
 # NEW03: File does not exist
-# Expect: Error: Cannot open file 'notfound.txt'.
-# (Error goes to stderr; we capture both to $got_file)
-run_case_with_file "NEW03_setup" "setup placeholder (ignored)" "" ""
-rm -f case_NEW03_setup.txt
 exp="Error: Cannot open file 'notfound.txt'."
 echo "$exp" > "${DIFFDIR}/expected_NEW03.txt"
+total=$((total+1))
 if [ -n "$TIMEOUT" ]; then
   ${TIMEOUT} java "$CLASS" "notfound.txt" > "${DIFFDIR}/received_NEW03.txt" 2>&1 || true
 else
@@ -155,7 +152,6 @@ else
   echo "FAIL  [NEW03] Missing file"
   echo "  See: ${DIFFDIR}/expected_NEW03.txt  vs  ${DIFFDIR}/received_NEW03.txt"
 fi
-total=$((total+1))
 
 # NEW04: Vertex count not an integer
 run_case_with_file "NEW04" "Non-integer vertex count" "X
@@ -163,7 +159,7 @@ A B 1
 " "Error: Invalid number of vertices 'X' on line 1.
 "
 
-# NEW05: Vertex count out of range (0)
+# NEW05: Vertex count 0 (out of range)
 run_case_with_file "NEW05" "Vertex count 0 (out of range)" "0
 A B 1
 " "Error: Invalid number of vertices '0' on line 1.
@@ -194,9 +190,6 @@ A B 0
 "
 
 # NEW10: MAX_INT weight handled as a real edge, not infinity
-# Graph:
-# 2
-# A B 2147483647
 read -r -d '' input_NEW10 << 'EOF'
 2
 A B 2147483647
@@ -256,7 +249,6 @@ EOF
 run_case_with_file "NEW11" "Two vertices, no edges -> infinity/none cases" "$input_NEW11" "$expected_NEW11"
 
 # NEW12: Duplicate edge overrides previous
-# Expect A->B to end up as 3 (not 10)
 read -r -d '' input_NEW12 << 'EOF'
 2
 A B 10
@@ -287,8 +279,7 @@ EOF
 
 run_case_with_file "NEW12" "Duplicate edges: last one wins" "$input_NEW12" "$expected_NEW12"
 
-# NEW13: Max allowed vertices (26), followed by an invalid edge line to avoid huge prints
-# Valid range A-Z; make line with 'AA' as an ending vertex to trigger the precise error
+# NEW13: Max allowed vertices (26), followed by an invalid edge line
 read -r -d '' input_NEW13 << 'EOF'
 26
 A AA 1
