@@ -50,7 +50,9 @@ public class ShortestPaths
 
     private void checkInput(String line, int lineNum, int vert)
     {
-        String[] args = line.split(" ");
+//        String[] args = line.split(" ");
+        String[] args = line.trim().split("\\s+");
+
         int delta = (int) 'A' + vert - 1;
 
         if (args.length != 3)
@@ -102,8 +104,8 @@ public class ShortestPaths
 
         // Check that the vertices are in range (A is 65 in ASCII)
         // Starting vertex
-        int asciiVal = charArr[0];
-        if (asciiVal > delta || asciiVal < 65)
+        char startVertex = args[0].charAt(0);
+        if (startVertex > delta || startVertex < 'A')
         {
             System.err.println("Error: Starting vertex '"+ charArr[0] +
                     "' on line " + lineNum +  " is not among valid values " +
@@ -111,11 +113,9 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        int fromInx = asciiVal - 65;
-
         // Ending vertex
-        asciiVal = charArr[1];
-        if (asciiVal > delta || asciiVal < 65)
+        char endVertex = args[1].charAt(0);
+        if (endVertex > delta || endVertex < 'A')
         {
             System.err.println("Error: Ending vertex '"+ charArr[1] +
                     "' on line " + lineNum +  " is not among valid values " +
@@ -123,7 +123,8 @@ public class ShortestPaths
             System.exit(1);
         }
 
-        int toInx = asciiVal - 65;
+        int fromInx = startVertex - 'A';
+        int toInx = endVertex - 'A';
         dist[fromInx][toInx] = weight;
     }
 
@@ -203,14 +204,16 @@ public class ShortestPaths
             {
                 for (int j = 0; j < n; j++)
                 {
-                    long prevVal = pathLength[i][j];
-                    long newVal = Math.min(pathLength[i][j],
-                            pathLength[i][k] + pathLength[k][j]);
-                    if (newVal < prevVal)
+                    // Check for infinity before adding to prevent overflow
+                    if (pathLength[i][k] != INF && pathLength[k][j] != INF)
                     {
-                        // save to table
-                        pathLength[i][j] = newVal;
-                        interVert[i][j] = inxToChar(k);
+                        long newVal = pathLength[i][k] + pathLength[k][j];
+                        if (newVal < pathLength[i][j])
+                        {
+                            // Save to tables
+                            pathLength[i][j] = newVal;
+                            interVert[i][j] = inxToChar(k);
+                        }
                     }
                 }
             }
@@ -219,7 +222,7 @@ public class ShortestPaths
 
     private char inxToChar(int inx)
     {
-        return (char) (65 + inx);
+        return (char) ('A' + inx);
     }
 
     private int charToInx(char ch)
@@ -230,62 +233,60 @@ public class ShortestPaths
     private void backtrackSolution()
     {
         StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < pathLength.length; i++)
+        for (int i = 0; i < vertNum; i++)
         {
-            for  (int j = 0; j < pathLength[i].length; j++)
+            for (int j = 0; j < vertNum; j++)
             {
+                long currentPathLength = pathLength[i][j];
+                String distanceString = (currentPathLength == INF) ? "infinity" : String.valueOf(currentPathLength);
+
                 sb.append(inxToChar(i)).append(" -> ").append(inxToChar(j))
-                    .append(", distance: ").append(pathLength[i][j])
-                    .append(", path: ").append(printPath(i, j))
-                    .append(System.lineSeparator());
+                        .append(", distance: ").append(distanceString)
+                        .append(", path: ");
+
+                // Only print a path if one exists
+                if (currentPathLength != INF)
+                {
+                    sb.append(getRecursivePath(i, j));
+                } else
+                {
+                    sb.append("none");
+                }
+
+                // Append new line unless it's the very last line of output
+                if (i < vertNum - 1 || j < vertNum - 1)
+                {
+                    sb.append(NL);
+                }
             }
         }
 
-        System.out.println(sb);
+        System.out.print(sb);
     }
 
-    private String getPath(int from, int to)
+    private String getRecursivePath(int i, int j)
     {
-        if (from == to)
-            return "" + inxToChar(from);
-
-        else if (interVert[from][to] == '-')
-            return "" + inxToChar(from) + inxToChar(to);
-
-        else
-        {
-            int inx = charToInx(interVert[from][to]);
-            String sFrom = getPath(from, inx);
-            String sTo = getPath(inx, to);
-
-            return sFrom + sTo;
-        }
-    }
-
-    private String printPath(int from, int to)
-    {
-        String path = getPath(from, to);
-        char[] chars = path.chars()
-                .distinct()
-                .mapToObj(c -> (char) c)
-                .collect(StringBuilder::new,
-                        StringBuilder::append,
-                        StringBuilder::append)
-                .toString()
-                .toCharArray();
-
-        StringBuilder sb = new StringBuilder();
-        for (char aChar : chars)
-        {
-            sb.append(aChar)
-                    .append(" -> ");
+        // Base case: path to the same vertex.
+        if (i == j) {
+            return String.valueOf(inxToChar(i));
         }
 
-        // Delete the last arrow
-        sb.delete(sb.length() - 4, sb.length());
+        char intermediateChar = interVert[i][j];
 
-        return sb.toString();
+        // Base case: a direct path exists between two different vertices.
+        if (intermediateChar == '-') {
+            return inxToChar(i) + " -> " + inxToChar(j);
+        }
+
+        // Recursive step:
+        int interIndex = charToInx(intermediateChar);
+        String firstHalf = getRecursivePath(i, interIndex);
+        String secondHalf = getRecursivePath(interIndex, j);
+
+        // Combine the two halves. For a path A -> B -> C, firstHalf is "A -> B"
+        // and secondHalf is "B -> C". We combine them by taking "A -> B" and
+        // appending " -> C" from the second half.
+        return firstHalf + secondHalf.substring(1);
     }
 
     private String render(long v)
