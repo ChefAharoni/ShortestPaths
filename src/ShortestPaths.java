@@ -356,7 +356,7 @@ public class ShortestPaths
             sb.append((char)('A' + i)); // Row header
             for (int j = 0; j < n; j++) {
                 sb.append(' '); // Separator
-                sb.append(String.format(cellFmt, pathLength[i][j]));
+                sb.append(String.format(cellFmt, render(pathLength[i][j])));
             }
         }
         sb.append(NL).append(NL);
